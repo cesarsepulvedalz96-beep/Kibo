@@ -1,0 +1,49 @@
+name: Verify Kivo
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  repository-safety:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Reject private or generated files
+        shell: bash
+        run: |
+          forbidden="$({ git ls-files | grep -E '(^|/)(node_modules|dist|target|coverage|playwright-report|test-results|\.tools|\.vscode|\.idea|\.aws)/|(^|/)(\.env($|\.)|\.npmrc$|credentials[^/]*$|application-.*\.local\.yml$|.*\.(pem|key|p12|jks|keystore|dump|backup)$)' || true; } | grep -v -E '(^|/)\.env\.example$' || true)"
+          if [ -n "$forbidden" ]; then
+            echo "Private or generated files are tracked:"
+            echo "$forbidden"
+            exit 1
+          fi
+          test -f LICENSE
+  backend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '25'
+          cache: maven
+      - run: mvn -B -ntp verify
+        working-directory: backend
+  frontend:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: npm ci
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm test
+      - run: npm run build

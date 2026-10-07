@@ -1,0 +1,54 @@
+name: stockflow
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-stockflow}
+      POSTGRES_USER: ${POSTGRES_USER:-stockflow}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Run node scripts/setup-local.mjs first}
+    ports:
+      - '127.0.0.1:5432:5432'
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB']
+      interval: 5s
+      timeout: 5s
+      retries: 15
+    restart: unless-stopped
+  backend:
+    profiles: ['app']
+    build:
+      context: ./backend
+    env_file: .env
+    environment:
+      DB_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-stockflow}
+      DB_USER: ${POSTGRES_USER:-stockflow}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      APP_TRUSTED_PROXIES: 172.30.0.10
+    ports:
+      - '127.0.0.1:8080:8080'
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - default
+      - api_proxy
+  frontend:
+    profiles: ['app']
+    build:
+      context: ./frontend
+    ports:
+      - '127.0.0.1:5173:8080'
+    depends_on:
+      - backend
+    networks:
+      api_proxy:
+        ipv4_address: 172.30.0.10
+networks:
+  api_proxy:
+    ipam:
+      config:
+        - subnet: 172.30.0.0/24
+volumes:
+  postgres_data:

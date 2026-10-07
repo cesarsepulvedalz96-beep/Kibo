@@ -1,0 +1,42 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.jks
+credentials*
+.npmrc
+.aws/
+*.keystore
+*.dump
+*.backup
+application-local.yml
+application-*.local.yml
+
+# Dependencies and generated artifacts
+node_modules/
+dist/
+target/
+coverage/
+playwright-report/
+test-results/
+.cache/
+.vite/
+.eslintcache
+.tools/
+*.log
+*.pid
+*.tsbuildinfo
+hs_err_pid*
+
+# Local agent and editor state
+.codex/
+.agents/
+.idea/
+.vscode/
+*.iml
+*.local
+.DS_Store
+Thumbs.db

@@ -1,0 +1,8 @@
+.tools
+node_modules
+dist
+target
+frontend/package-lock.json
+frontend/test-results
+frontend/playwright-report
+frontend/src/locales

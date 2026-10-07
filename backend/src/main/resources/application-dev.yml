@@ -1,0 +1,10 @@
+app:
+  cookie-secure: false
+  demo:
+    email: ${DEMO_USER_EMAIL:demo@stockflow.local}
+    password: ${DEMO_USER_PASSWORD:}
+server:
+  servlet:
+    session:
+      cookie:
+        secure: false
